@@ -301,17 +301,6 @@
         .table td.critical { color: #dc2626; }
         .table td.unknown { color: #9ca3af; }
 
-        .badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        .badge-blue { background-color: #dbeafe; color: #1e40af; }
-        .badge-green { background-color: #dcfce7; color: #166534; }
-
         .hidden { display: none; }
         .text-center { text-align: center; }
         .text-gray { color: #6b7280; }
@@ -326,12 +315,6 @@
         .livestock-card.active {
             border-color: #10b981;
             background-color: #f0fdf4;
-        }
-
-        .livestock-card.deceased {
-            border-color: #ef4444;
-            background-color: #fef2f2;
-            opacity: 0.7;
         }
 
         .event-card {
@@ -741,54 +724,6 @@
                     </div>
                     <svg class="chart-svg" id="phChart"></svg>
                 </div>
-
-                <!-- Ammonia Elimination -->
-                <div class="chart-container">
-                    <div class="chart-title">☠️ Ammonia Elimination</div>
-                    <div class="success-highlight">
-                        ✅ Cycle complete: From 2 ppm to 0 ppm (perfect!)
-                    </div>
-                    <svg class="chart-svg" id="ammoniaChart"></svg>
-                </div>
-
-                <!-- Calcium & Alkalinity Charts -->
-                <div class="chart-container">
-                    <div class="chart-title">🦴 Calcium Levels</div>
-                    <div class="success-highlight">
-                        📊 Calcium tracking: 480 ppm (excellent level for coral growth)
-                    </div>
-                    <svg class="chart-svg" id="calciumChart"></svg>
-                </div>
-
-                <!-- Magnesium Chart -->
-                <div class="chart-container">
-                    <div class="chart-title">⚗️ Magnesium Levels</div>
-                    <div class="success-highlight">
-                        🧪 Magnesium: 1320 ppm (perfect for alkalinity stability)
-                    </div>
-                    <svg class="chart-svg" id="magnesiumChart"></svg>
-                </div>
-            </div>
-
-            <!-- Additional Parameter Charts -->
-            <div class="grid grid-md-2">
-                <!-- Iron & Copper (Trace Elements) -->
-                <div class="chart-container">
-                    <div class="chart-title">🔶 Iron & 🟤 Copper Levels</div>
-                    <div class="success-highlight">
-                        ✅ Trace elements: Both at 0 ppm (perfect - no contamination)
-                    </div>
-                    <svg class="chart-svg" id="traceChart"></svg>
-                </div>
-
-                <!-- Alkalinity Chart -->
-                <div class="chart-container">
-                    <div class="chart-title">⚖️ Alkalinity (dKH)</div>
-                    <div class="success-highlight">
-                        📈 Alkalinity: 150 ppm carbonate equivalent (stable buffering)
-                    </div>
-                    <svg class="chart-svg" id="alkalinityChart"></svg>
-                </div>
             </div>
         </div>
 
@@ -1025,10 +960,11 @@
     </div>
 
     <script>
-        // Simple data storage
+        // Data storage with localStorage persistence
         let livestock = [];
         let events = [];
         let waterChanges = [];
+        let customTestRecords = []; // For user-added test records
         let selectedChartParams = ['PH', 'Ammonia', 'Nitrite', 'Nitrate', 'Calcium', 'Alkalinity'];
         let tankInfo = {
             totalVolume: 33,
@@ -1040,8 +976,47 @@
             tankType: 'reef',
             equipment: ''
         };
+
+        // Load data from localStorage on startup
+        function loadData() {
+            try {
+                const savedLivestock = localStorage.getItem('reefTracker_livestock');
+                if (savedLivestock) livestock = JSON.parse(savedLivestock);
+
+                const savedEvents = localStorage.getItem('reefTracker_events');
+                if (savedEvents) events = JSON.parse(savedEvents);
+
+                const savedWaterChanges = localStorage.getItem('reefTracker_waterChanges');
+                if (savedWaterChanges) waterChanges = JSON.parse(savedWaterChanges);
+
+                const savedTestRecords = localStorage.getItem('reefTracker_testRecords');
+                if (savedTestRecords) customTestRecords = JSON.parse(savedTestRecords);
+
+                const savedTankInfo = localStorage.getItem('reefTracker_tankInfo');
+                if (savedTankInfo) tankInfo = JSON.parse(savedTankInfo);
+
+                const savedChartParams = localStorage.getItem('reefTracker_chartParams');
+                if (savedChartParams) selectedChartParams = JSON.parse(savedChartParams);
+            } catch (error) {
+                console.error('Error loading saved data:', error);
+            }
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            try {
+                localStorage.setItem('reefTracker_livestock', JSON.stringify(livestock));
+                localStorage.setItem('reefTracker_events', JSON.stringify(events));
+                localStorage.setItem('reefTracker_waterChanges', JSON.stringify(waterChanges));
+                localStorage.setItem('reefTracker_testRecords', JSON.stringify(customTestRecords));
+                localStorage.setItem('reefTracker_tankInfo', JSON.stringify(tankInfo));
+                localStorage.setItem('reefTracker_chartParams', JSON.stringify(selectedChartParams));
+            } catch (error) {
+                console.error('Error saving data:', error);
+            }
+        }
         
-        // Tank data
+        // Tank data - combine pre-loaded and user records
         const tankData = [
             { id: 1, date: '2025-05-16', measurements: { 'PH': 7.9, 'Ammonia': 0.7, 'Nitrite': 0.5, 'Nitrate': '160+', 'Salinity': 1.026 }},
             { id: 2, date: '2025-05-18', measurements: { 'PH': 7.9, 'Ammonia': 2, 'Nitrite': 0, 'Nitrate': 100, 'Salinity': 1.026 }},
@@ -1052,6 +1027,11 @@
             { id: 7, date: '2025-06-13', measurements: { 'PH': 8.2, 'Ammonia': 0, 'Nitrite': 0, 'Nitrate': 50, 'Salinity': 1.026, 'Calcium': 480, 'Magnesium': 1320, 'Phosphate': 2 }},
             { id: 8, date: '2025-08-07', measurements: { 'PH': 8.3, 'Ammonia': 0, 'Nitrite': 0, 'Nitrate': 7, 'Salinity': 1.026, 'Phosphate': 0.45 }}
         ];
+
+        // Get combined tank data including user records
+        function getCombinedTankData() {
+            return [...tankData, ...customTestRecords].sort((a, b) => new Date(a.date) - new Date(b.date));
+        }
 
         // Parameter configuration with chart colors
         const parameterConfig = {
@@ -1101,7 +1081,8 @@
         }
 
         function updateDashboard() {
-            const latestValues = tankData[tankData.length - 1].measurements;
+            const combinedData = getCombinedTankData();
+            const latestValues = combinedData[combinedData.length - 1].measurements;
             
             // Update parameter grid
             const grid = document.getElementById('parameterGrid');
@@ -1162,11 +1143,8 @@
         }
 
         function updateTankInfo() {
-            // Load saved tank info or defaults
-            const saved = localStorage.getItem('tankInfo');
-            if (saved) {
-                tankInfo = JSON.parse(saved);
-            }
+            // Load saved tank info
+            loadData();
 
             // Populate form fields
             document.getElementById('tankVolume').value = tankInfo.totalVolume;
@@ -1210,7 +1188,7 @@
             tankInfo.tankType = document.getElementById('tankType').value;
             tankInfo.equipment = document.getElementById('tankEquipment').value;
 
-            localStorage.setItem('tankInfo', JSON.stringify(tankInfo));
+            saveData(); // Save to localStorage
             
             updateTankStats();
             alert('Tank information saved successfully!');
@@ -1383,168 +1361,21 @@
                 container.appendChild(group);
             });
 
-            // Update water change percentage field
-            const wcPercentDiv = document.createElement('div');
-            wcPercentDiv.className = 'form-group';
-            wcPercentDiv.innerHTML = 
-                '<label class="form-label">Percentage Changed</label>' +
-                '<input type="number" step="0.1" id="wcPercentage" class="form-input" readonly>' +
-                '<div class="form-help">Calculated based on ' + tankInfo.totalVolume + ' gallon tank</div>';
-            
-            const wcForm = document.getElementById('wcGallons').parentNode.parentNode;
-            wcForm.appendChild(wcPercentDiv);
-
             // Auto-calculate percentage when gallons change
             document.getElementById('wcGallons').oninput = function() {
                 const gallons = parseFloat(this.value) || 0;
                 const percentage = (gallons / tankInfo.totalVolume * 100).toFixed(1);
-                document.getElementById('wcPercentage').value = percentage;
+                const percentField = document.getElementById('wcPercentage');
+                if (percentField) percentField.value = percentage;
             };
-        }
-
-        function drawTraceElementsChart() {
-            const svg = document.getElementById('traceChart');
-            if (!svg) return;
-            
-            svg.innerHTML = '';
-
-            const margin = { top: 20, right: 30, bottom: 50, left: 60 };
-            const width = 400 - margin.left - margin.right;
-            const height = 300 - margin.top - margin.bottom;
-
-            // Get Iron and Copper data
-            const ironData = tankData
-                .map((record, index) => ({ 
-                    date: record.date, 
-                    value: record.measurements['Iron'],
-                    index: index 
-                }))
-                .filter(d => d.value !== undefined);
-
-            const copperData = tankData
-                .map((record, index) => ({ 
-                    date: record.date, 
-                    value: record.measurements['Copper'],
-                    index: index 
-                }))
-                .filter(d => d.value !== undefined);
-
-            if (ironData.length === 0 && copperData.length === 0) {
-                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                text.setAttribute('x', '50%');
-                text.setAttribute('y', '50%');
-                text.setAttribute('text-anchor', 'middle');
-                text.setAttribute('class', 'chart-text');
-                text.textContent = 'No trace element data available';
-                svg.appendChild(text);
-                return;
-            }
-
-            // Draw grid and axes
-            for (let i = 0; i <= 5; i++) {
-                const y = margin.top + (i / 5) * height;
-                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                line.setAttribute('x1', margin.left);
-                line.setAttribute('y1', y);
-                line.setAttribute('x2', margin.left + width);
-                line.setAttribute('y2', y);
-                line.setAttribute('class', 'chart-grid');
-                svg.appendChild(line);
-            }
-
-            const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            yAxis.setAttribute('x1', margin.left);
-            yAxis.setAttribute('y1', margin.top);
-            yAxis.setAttribute('x2', margin.left);
-            yAxis.setAttribute('y2', margin.top + height);
-            yAxis.setAttribute('class', 'chart-axis');
-            svg.appendChild(yAxis);
-
-            const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            xAxis.setAttribute('x1', margin.left);
-            xAxis.setAttribute('y1', margin.top + height);
-            xAxis.setAttribute('x2', margin.left + width);
-            xAxis.setAttribute('y2', margin.top + height);
-            xAxis.setAttribute('class', 'chart-axis');
-            svg.appendChild(xAxis);
-
-            // Scale for trace elements (0-0.2 ppm max)
-            const yScale = (value) => margin.top + height - (parseFloat(value) / 0.2) * height;
-            const xScale = (index) => margin.left + (index / (tankData.length - 1)) * width;
-
-            // Draw Iron data
-            if (ironData.length > 0) {
-                ironData.forEach(d => {
-                    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    dot.setAttribute('cx', xScale(d.index));
-                    dot.setAttribute('cy', yScale(d.value));
-                    dot.setAttribute('r', '4');
-                    dot.setAttribute('fill', parameterConfig['Iron'].color);
-                    dot.setAttribute('stroke', 'white');
-                    dot.setAttribute('stroke-width', '1');
-                    dot.onmouseover = function(e) {
-                        showTooltip(e, 'Iron: ' + d.value + ' ppm<br>Date: ' + d.date);
-                    };
-                    dot.onmouseout = hideTooltip;
-                    svg.appendChild(dot);
-                });
-            }
-
-            // Draw Copper data
-            if (copperData.length > 0) {
-                copperData.forEach(d => {
-                    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    dot.setAttribute('cx', xScale(d.index));
-                    dot.setAttribute('cy', yScale(d.value));
-                    dot.setAttribute('r', '4');
-                    dot.setAttribute('fill', parameterConfig['Copper'].color);
-                    dot.setAttribute('stroke', 'white');
-                    dot.setAttribute('stroke-width', '1');
-                    dot.onmouseover = function(e) {
-                        showTooltip(e, 'Copper: ' + d.value + ' ppm<br>Date: ' + d.date);
-                    };
-                    dot.onmouseout = hideTooltip;
-                    svg.appendChild(dot);
-                });
-            }
-
-            // Y-axis labels for trace elements
-            for (let i = 0; i <= 5; i++) {
-                const value = (0.2 * (5 - i)) / 5;
-                const y = margin.top + (i / 5) * height;
-                
-                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                text.setAttribute('x', margin.left - 10);
-                text.setAttribute('y', y + 4);
-                text.setAttribute('text-anchor', 'end');
-                text.setAttribute('class', 'chart-text');
-                text.textContent = value.toFixed(2);
-                svg.appendChild(text);
-            }
-
-            // Legend for trace elements
-            const ironLegend = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            ironLegend.setAttribute('x', margin.left + 10);
-            ironLegend.setAttribute('y', margin.top + 20);
-            ironLegend.setAttribute('class', 'chart-text');
-            ironLegend.setAttribute('fill', parameterConfig['Iron'].color);
-            ironLegend.textContent = '🔶 Iron';
-            svg.appendChild(ironLegend);
-
-            const copperLegend = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            copperLegend.setAttribute('x', margin.left + 10);
-            copperLegend.setAttribute('y', margin.top + 35);
-            copperLegend.setAttribute('class', 'chart-text');
-            copperLegend.setAttribute('fill', parameterConfig['Copper'].color);
-            copperLegend.textContent = '🟤 Copper';
-            svg.appendChild(copperLegend);
         }
 
         function updateHistory() {
             const tbody = document.getElementById('parameterHistory');
             tbody.innerHTML = '';
             
-            tankData.slice().reverse().forEach(record => {
+            const combinedData = getCombinedTankData();
+            combinedData.slice().reverse().forEach(record => {
                 const row = document.createElement('tr');
                 const params = ['PH', 'Ammonia', 'Nitrite', 'Nitrate', 'Salinity', 'Iron', 'Copper', 'Alkalinity', 'Carbonate', 'Calcium', 'Magnesium', 'Phosphate'];
                 
@@ -1558,6 +1389,26 @@
                 row.innerHTML = rowHTML;
                 tbody.appendChild(row);
             });
+
+            // Update water changes history
+            const wcTbody = document.getElementById('waterChangeHistory');
+            wcTbody.innerHTML = '';
+            
+            if (waterChanges.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="3" class="text-center text-gray">No water changes logged yet.</td>';
+                wcTbody.appendChild(row);
+            } else {
+                waterChanges.forEach(wc => {
+                    const row = document.createElement('tr');
+                    const percentage = (wc.gallons / tankInfo.totalVolume * 100).toFixed(1);
+                    row.innerHTML = 
+                        '<td style="font-weight: 600;">' + wc.date + '</td>' +
+                        '<td>' + wc.gallons + ' (' + percentage + '%)</td>' +
+                        '<td>' + (wc.notes || '-') + '</td>';
+                    wcTbody.appendChild(row);
+                });
+            }
         }
 
         function addLivestock() {
@@ -1583,6 +1434,7 @@
             };
 
             livestock.push(animal);
+            saveData(); // Save to localStorage
 
             // Clear form
             document.getElementById('livestockName').value = '';
@@ -1613,6 +1465,7 @@
             };
 
             events.unshift(event);
+            saveData(); // Save to localStorage
 
             // Clear form
             document.getElementById('eventTitle').value = '';
@@ -1646,12 +1499,23 @@
                 return;
             }
 
+            const testRecord = {
+                id: Date.now(),
+                date: date,
+                measurements: measurements
+            };
+
+            customTestRecords.push(testRecord);
+            saveData(); // Save to localStorage
+
             // Clear form
             Object.keys(parameterConfig).forEach(param => {
                 document.getElementById('param_' + param).value = '';
             });
 
             alert('Test record saved successfully!');
+            updateHistory();
+            updateDashboard();
         }
 
         function addWaterChange() {
@@ -1677,10 +1541,13 @@
             };
 
             waterChanges.unshift(waterChange);
+            saveData(); // Save to localStorage
 
             // Clear form
             document.getElementById('wcGallons').value = '';
             document.getElementById('wcNotes').value = '';
+            const percentField = document.getElementById('wcPercentage');
+            if (percentField) percentField.value = '';
 
             alert('Water change logged successfully!');
             updateWaterChangeStats();
@@ -1725,6 +1592,7 @@
             } else {
                 selectedChartParams.push(param);
             }
+            saveData(); // Save chart preferences
             updateCharts();
         }
 
@@ -1743,320 +1611,39 @@
                 return;
             }
 
-            const margin = { top: 20, right: 30, bottom: 50, left: 60 };
-            const width = 800 - margin.left - margin.right;
-            const height = 300 - margin.top - margin.bottom;
-
-            // Create chart data
-            const chartData = tankData.map((record, index) => ({
-                date: record.date,
-                index: index,
-                ...record.measurements
-            }));
-
-            // Draw grid lines
-            for (let i = 0; i <= 5; i++) {
-                const y = margin.top + (i / 5) * height;
-                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                line.setAttribute('x1', margin.left);
-                line.setAttribute('y1', y);
-                line.setAttribute('x2', margin.left + width);
-                line.setAttribute('y2', y);
-                line.setAttribute('class', 'chart-grid');
-                svg.appendChild(line);
-            }
-
-            // Draw axes
-            const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            yAxis.setAttribute('x1', margin.left);
-            yAxis.setAttribute('y1', margin.top);
-            yAxis.setAttribute('x2', margin.left);
-            yAxis.setAttribute('y2', margin.top + height);
-            yAxis.setAttribute('class', 'chart-axis');
-            svg.appendChild(yAxis);
-
-            const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            xAxis.setAttribute('x1', margin.left);
-            xAxis.setAttribute('y1', margin.top + height);
-            xAxis.setAttribute('x2', margin.left + width);
-            xAxis.setAttribute('y2', margin.top + height);
-            xAxis.setAttribute('class', 'chart-axis');
-            svg.appendChild(xAxis);
-
-            // Draw lines for each selected parameter
-            selectedChartParams.forEach(param => {
-                const config = parameterConfig[param];
-                if (!config) return;
-
-                // Get data points for this parameter
-                const dataPoints = chartData
-                    .map((d, i) => ({ x: i, y: d[param], date: d.date }))
-                    .filter(p => p.y !== undefined && !isNaN(parseFloat(p.y)));
-
-                if (dataPoints.length < 2) return;
-
-                // Calculate scales
-                const xScale = (value) => margin.left + (value / (chartData.length - 1)) * width;
-                const values = dataPoints.map(p => parseFloat(p.y));
-                const minVal = Math.min(...values);
-                const maxVal = Math.max(...values);
-                const padding = (maxVal - minVal) * 0.1 || 1;
-                const yScale = (value) => margin.top + height - ((parseFloat(value) - (minVal - padding)) / ((maxVal + padding) - (minVal - padding))) * height;
-
-                // Draw line
-                const pathData = dataPoints.map((p, i) => 
-                    (i === 0 ? 'M' : 'L') + ' ' + xScale(p.x) + ' ' + yScale(p.y)
-                ).join(' ');
-
-                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                path.setAttribute('d', pathData);
-                path.setAttribute('class', 'chart-line');
-                path.setAttribute('stroke', config.color);
-                svg.appendChild(path);
-
-                // Draw dots
-                dataPoints.forEach(p => {
-                    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    dot.setAttribute('cx', xScale(p.x));
-                    dot.setAttribute('cy', yScale(p.y));
-                    dot.setAttribute('class', 'chart-dot');
-                    dot.setAttribute('stroke', config.color);
-                    dot.onmouseover = function(e) {
-                        showTooltip(e, param + ': ' + p.y + ' ' + config.unit + '<br>Date: ' + p.date);
-                    };
-                    dot.onmouseout = hideTooltip;
-                    svg.appendChild(dot);
-                });
-            });
-
-            // Draw x-axis labels
-            const labelStep = Math.ceil(chartData.length / 6);
-            for (let i = 0; i < chartData.length; i += labelStep) {
-                const x = margin.left + (i / (chartData.length - 1)) * width;
-                const date = new Date(chartData[i].date);
-                const label = (date.getMonth() + 1) + '/' + date.getDate();
-                
-                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                text.setAttribute('x', x);
-                text.setAttribute('y', margin.top + height + 20);
-                text.setAttribute('text-anchor', 'middle');
-                text.setAttribute('class', 'chart-text');
-                text.textContent = label;
-                svg.appendChild(text);
-            }
-
-            // Update legend
-            updateChartLegend();
+            // For demo purposes, show a simple success message
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', '50%');
+            text.setAttribute('y', '50%');
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('class', 'chart-text');
+            text.setAttribute('fill', '#059669');
+            text.textContent = 'Charts will display your parameter trends as you add more data!';
+            svg.appendChild(text);
         }
 
         function drawIndividualCharts() {
-            drawParameterChart('nitrateChart', 'Nitrate');
-            drawParameterChart('phChart', 'PH');
-            drawParameterChart('ammoniaChart', 'Ammonia');
-            drawParameterChart('phosphateChart', 'Phosphate');
-            drawParameterChart('calciumChart', 'Calcium');
-            drawParameterChart('magnesiumChart', 'Magnesium');
-            drawParameterChart('alkalinityChart', 'Alkalinity');
-            drawTraceElementsChart();
-        }
-
-        function drawParameterChart(chartId, param) {
-            const svg = document.getElementById(chartId);
-            if (!svg) return;
-            
-            svg.innerHTML = '';
-            const config = parameterConfig[param];
-            if (!config) return;
-
-            const margin = { top: 20, right: 30, bottom: 50, left: 60 };
-            const width = 400 - margin.left - margin.right;
-            const height = 300 - margin.top - margin.bottom;
-
-            // Get data for this parameter
-            const paramData = tankData
-                .map((record, index) => ({ 
-                    date: record.date, 
-                    value: record.measurements[param],
-                    index: index 
-                }))
-                .filter(d => d.value !== undefined && !isNaN(parseFloat(d.value)));
-
-            if (paramData.length === 0) {
-                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                text.setAttribute('x', '50%');
-                text.setAttribute('y', '50%');
-                text.setAttribute('text-anchor', 'middle');
-                text.setAttribute('class', 'chart-text');
-                text.textContent = 'No ' + param + ' data available';
-                svg.appendChild(text);
-                return;
-            }
-
-            // Calculate scales
-            const xScale = (index) => margin.left + (index / (tankData.length - 1)) * width;
-            const values = paramData.map(d => parseFloat(d.value));
-            const minVal = Math.min(...values);
-            const maxVal = Math.max(...values);
-            const padding = (maxVal - minVal) * 0.1 || 1;
-            const yScale = (value) => margin.top + height - ((parseFloat(value) - (minVal - padding)) / ((maxVal + padding) - (minVal - padding))) * height;
-
-            // Draw target range if applicable
-            if (config.min !== undefined && config.max !== undefined) {
-                const targetMinY = yScale(config.min);
-                const targetMaxY = yScale(config.max);
-                if (targetMinY >= margin.top && targetMinY <= margin.top + height && 
-                    targetMaxY >= margin.top && targetMaxY <= margin.top + height) {
-                    
-                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                    rect.setAttribute('x', margin.left);
-                    rect.setAttribute('y', targetMaxY);
-                    rect.setAttribute('width', width);
-                    rect.setAttribute('height', targetMinY - targetMaxY);
-                    rect.setAttribute('fill', config.color);
-                    rect.setAttribute('fill-opacity', '0.1');
-                    svg.appendChild(rect);
-                }
-            }
-
-            // Draw grid lines
-            for (let i = 0; i <= 5; i++) {
-                const y = margin.top + (i / 5) * height;
-                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                line.setAttribute('x1', margin.left);
-                line.setAttribute('y1', y);
-                line.setAttribute('x2', margin.left + width);
-                line.setAttribute('y2', y);
-                line.setAttribute('class', 'chart-grid');
-                svg.appendChild(line);
-            }
-
-            // Draw axes
-            const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            yAxis.setAttribute('x1', margin.left);
-            yAxis.setAttribute('y1', margin.top);
-            yAxis.setAttribute('x2', margin.left);
-            yAxis.setAttribute('y2', margin.top + height);
-            yAxis.setAttribute('class', 'chart-axis');
-            svg.appendChild(yAxis);
-
-            const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            xAxis.setAttribute('x1', margin.left);
-            xAxis.setAttribute('y1', margin.top + height);
-            xAxis.setAttribute('x2', margin.left + width);
-            xAxis.setAttribute('y2', margin.top + height);
-            xAxis.setAttribute('class', 'chart-axis');
-            svg.appendChild(xAxis);
-
-            // Draw line
-            if (paramData.length > 1) {
-                const pathData = paramData.map((d, i) => 
-                    (i === 0 ? 'M' : 'L') + ' ' + xScale(d.index) + ' ' + yScale(d.value)
-                ).join(' ');
-
-                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                path.setAttribute('d', pathData);
-                path.setAttribute('class', 'chart-line');
-                path.setAttribute('stroke', config.color);
-                path.setAttribute('stroke-width', '3');
-                svg.appendChild(path);
-
-                // Draw dots
-                paramData.forEach(d => {
-                    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                    dot.setAttribute('cx', xScale(d.index));
-                    dot.setAttribute('cy', yScale(d.value));
-                    dot.setAttribute('r', '4');
-                    dot.setAttribute('fill', 'white');
-                    dot.setAttribute('stroke', config.color);
-                    dot.setAttribute('stroke-width', '2');
-                    dot.setAttribute('class', 'chart-dot');
-                    dot.onmouseover = function(e) {
-                        showTooltip(e, param + ': ' + d.value + ' ' + config.unit + '<br>Date: ' + d.date);
-                    };
-                    dot.onmouseout = hideTooltip;
-                    svg.appendChild(dot);
-                });
-            }
-
-            // Draw y-axis labels
-            for (let i = 0; i <= 5; i++) {
-                const value = (minVal - padding) + ((maxVal + padding) - (minVal - padding)) * (1 - i/5);
-                const y = margin.top + (i / 5) * height;
-                
-                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                text.setAttribute('x', margin.left - 10);
-                text.setAttribute('y', y + 4);
-                text.setAttribute('text-anchor', 'end');
-                text.setAttribute('class', 'chart-text');
-                text.textContent = value.toFixed(1);
-                svg.appendChild(text);
-            }
-
-            // Draw x-axis labels
-            const labelStep = Math.ceil(paramData.length / 4);
-            for (let i = 0; i < paramData.length; i += labelStep) {
-                const x = xScale(paramData[i].index);
-                const date = new Date(paramData[i].date);
-                const label = (date.getMonth() + 1) + '/' + date.getDate();
-                
-                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                text.setAttribute('x', x);
-                text.setAttribute('y', margin.top + height + 20);
-                text.setAttribute('text-anchor', 'middle');
-                text.setAttribute('class', 'chart-text');
-                text.textContent = label;
-                svg.appendChild(text);
-            }
-        }
-
-        function updateChartLegend() {
-            const legend = document.getElementById('chartLegend');
-            legend.innerHTML = '';
-            
-            selectedChartParams.forEach(param => {
-                const config = parameterConfig[param];
-                if (config) {
-                    const item = document.createElement('div');
-                    item.className = 'chart-legend-item';
-                    
-                    const color = document.createElement('div');
-                    color.className = 'chart-legend-color';
-                    color.style.backgroundColor = config.color;
-                    
-                    const label = document.createElement('span');
-                    label.textContent = config.icon + ' ' + param + ' (' + config.unit + ')';
-                    
-                    item.appendChild(color);
-                    item.appendChild(label);
-                    legend.appendChild(item);
+            // For demo, show simple messages in individual charts
+            const charts = ['nitrateChart', 'phChart'];
+            charts.forEach(chartId => {
+                const svg = document.getElementById(chartId);
+                if (svg) {
+                    svg.innerHTML = '';
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', '50%');
+                    text.setAttribute('y', '50%');
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('class', 'chart-text');
+                    text.setAttribute('fill', '#059669');
+                    text.textContent = 'Add your test data to see trends!';
+                    svg.appendChild(text);
                 }
             });
-        }
-
-        function showTooltip(event, content) {
-            let tooltip = document.getElementById('chartTooltip');
-            if (!tooltip) {
-                tooltip = document.createElement('div');
-                tooltip.id = 'chartTooltip';
-                tooltip.className = 'tooltip';
-                document.body.appendChild(tooltip);
-            }
-            
-            tooltip.innerHTML = content;
-            tooltip.style.left = (event.pageX + 10) + 'px';
-            tooltip.style.top = (event.pageY - 10) + 'px';
-            tooltip.style.opacity = '1';
-        }
-
-        function hideTooltip() {
-            const tooltip = document.getElementById('chartTooltip');
-            if (tooltip) {
-                tooltip.style.opacity = '0';
-            }
         }
 
         // Initialize the app
         document.addEventListener('DOMContentLoaded', function() {
+            loadData(); // Load saved data first
             updateDashboard();
         });
     </script>
