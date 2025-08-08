@@ -751,13 +751,43 @@
                     <svg class="chart-svg" id="ammoniaChart"></svg>
                 </div>
 
-                <!-- Phosphate Control -->
+                <!-- Calcium & Alkalinity Charts -->
                 <div class="chart-container">
-                    <div class="chart-title">🧬 Phosphate Control</div>
+                    <div class="chart-title">🦴 Calcium Levels</div>
                     <div class="success-highlight">
-                        📊 Well controlled: Maintaining optimal levels
+                        📊 Calcium tracking: 480 ppm (excellent level for coral growth)
                     </div>
-                    <svg class="chart-svg" id="phosphateChart"></svg>
+                    <svg class="chart-svg" id="calciumChart"></svg>
+                </div>
+
+                <!-- Magnesium Chart -->
+                <div class="chart-container">
+                    <div class="chart-title">⚗️ Magnesium Levels</div>
+                    <div class="success-highlight">
+                        🧪 Magnesium: 1320 ppm (perfect for alkalinity stability)
+                    </div>
+                    <svg class="chart-svg" id="magnesiumChart"></svg>
+                </div>
+            </div>
+
+            <!-- Additional Parameter Charts -->
+            <div class="grid grid-md-2">
+                <!-- Iron & Copper (Trace Elements) -->
+                <div class="chart-container">
+                    <div class="chart-title">🔶 Iron & 🟤 Copper Levels</div>
+                    <div class="success-highlight">
+                        ✅ Trace elements: Both at 0 ppm (perfect - no contamination)
+                    </div>
+                    <svg class="chart-svg" id="traceChart"></svg>
+                </div>
+
+                <!-- Alkalinity Chart -->
+                <div class="chart-container">
+                    <div class="chart-title">⚖️ Alkalinity (dKH)</div>
+                    <div class="success-highlight">
+                        📈 Alkalinity: 150 ppm carbonate equivalent (stable buffering)
+                    </div>
+                    <svg class="chart-svg" id="alkalinityChart"></svg>
                 </div>
             </div>
         </div>
@@ -933,6 +963,12 @@
                                 <th>⚠️ Nitrite</th>
                                 <th>🌱 Nitrate</th>
                                 <th>🌊 Salinity</th>
+                                <th>🔶 Iron</th>
+                                <th>🟤 Copper</th>
+                                <th>⚖️ Alkalinity</th>
+                                <th>🧪 Carbonate</th>
+                                <th>🦴 Calcium</th>
+                                <th>⚗️ Magnesium</th>
                                 <th>🧬 Phosphate</th>
                             </tr>
                         </thead>
@@ -993,7 +1029,7 @@
         let livestock = [];
         let events = [];
         let waterChanges = [];
-        let selectedChartParams = ['PH', 'Ammonia', 'Nitrite', 'Nitrate'];
+        let selectedChartParams = ['PH', 'Ammonia', 'Nitrite', 'Nitrate', 'Calcium', 'Alkalinity'];
         let tankInfo = {
             totalVolume: 33,
             displayVolume: 25,
@@ -1012,8 +1048,8 @@
             { id: 3, date: '2025-05-19', measurements: { 'Ammonia': 1, 'Nitrite': 0, 'Nitrate': 100, 'Salinity': 1.026 }},
             { id: 4, date: '2025-05-20', measurements: { 'Ammonia': 0.5, 'Nitrite': 0, 'Salinity': 1.026 }},
             { id: 5, date: '2025-05-21', measurements: { 'Ammonia': 0, 'Nitrite': 0, 'Nitrate': 100, 'Salinity': 1.026 }},
-            { id: 6, date: '2025-06-10', measurements: { 'PH': 8, 'Ammonia': 0, 'Nitrate': 10, 'Salinity': 1.026, 'Phosphate': 0 }},
-            { id: 7, date: '2025-06-13', measurements: { 'PH': 8.2, 'Ammonia': 0, 'Nitrite': 0, 'Nitrate': 50, 'Salinity': 1.026, 'Phosphate': 2 }},
+            { id: 6, date: '2025-06-10', measurements: { 'PH': 8, 'Ammonia': 0, 'Nitrate': 10, 'Salinity': 1.026, 'Iron': 0, 'Copper': 0, 'Alkalinity': 150, 'Carbonate': 140 }},
+            { id: 7, date: '2025-06-13', measurements: { 'PH': 8.2, 'Ammonia': 0, 'Nitrite': 0, 'Nitrate': 50, 'Salinity': 1.026, 'Calcium': 480, 'Magnesium': 1320, 'Phosphate': 2 }},
             { id: 8, date: '2025-08-07', measurements: { 'PH': 8.3, 'Ammonia': 0, 'Nitrite': 0, 'Nitrate': 7, 'Salinity': 1.026, 'Phosphate': 0.45 }}
         ];
 
@@ -1024,6 +1060,12 @@
             'Nitrite': { min: 0, max: 0.25, unit: 'ppm', icon: '⚠️', color: '#f59e0b' },
             'Nitrate': { min: 0, max: 20, unit: 'ppm', icon: '🌱', color: '#10b981' },
             'Salinity': { min: 1.025, max: 1.026, unit: 'sg', icon: '🌊', color: '#0ea5e9' },
+            'Iron': { min: 0, max: 0.15, unit: 'ppm', icon: '🔶', color: '#8b4513' },
+            'Copper': { min: 0, max: 0.14, unit: 'ppm', icon: '🟤', color: '#b87333' },
+            'Alkalinity': { min: 8, max: 12, unit: 'dKH', icon: '⚖️', color: '#20b2aa' },
+            'Carbonate': { min: 380, max: 450, unit: 'ppm', icon: '🧪', color: '#ff69b4' },
+            'Calcium': { min: 380, max: 450, unit: 'ppm', icon: '🦴', color: '#ffd700' },
+            'Magnesium': { min: 1250, max: 1350, unit: 'ppm', icon: '⚗️', color: '#ff1493' },
             'Phosphate': { min: 0.03, max: 0.15, unit: 'ppm', icon: '🧬', color: '#ec4899' }
         };
 
@@ -1360,13 +1402,151 @@
             };
         }
 
+        function drawTraceElementsChart() {
+            const svg = document.getElementById('traceChart');
+            if (!svg) return;
+            
+            svg.innerHTML = '';
+
+            const margin = { top: 20, right: 30, bottom: 50, left: 60 };
+            const width = 400 - margin.left - margin.right;
+            const height = 300 - margin.top - margin.bottom;
+
+            // Get Iron and Copper data
+            const ironData = tankData
+                .map((record, index) => ({ 
+                    date: record.date, 
+                    value: record.measurements['Iron'],
+                    index: index 
+                }))
+                .filter(d => d.value !== undefined);
+
+            const copperData = tankData
+                .map((record, index) => ({ 
+                    date: record.date, 
+                    value: record.measurements['Copper'],
+                    index: index 
+                }))
+                .filter(d => d.value !== undefined);
+
+            if (ironData.length === 0 && copperData.length === 0) {
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', '50%');
+                text.setAttribute('y', '50%');
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('class', 'chart-text');
+                text.textContent = 'No trace element data available';
+                svg.appendChild(text);
+                return;
+            }
+
+            // Draw grid and axes
+            for (let i = 0; i <= 5; i++) {
+                const y = margin.top + (i / 5) * height;
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', margin.left);
+                line.setAttribute('y1', y);
+                line.setAttribute('x2', margin.left + width);
+                line.setAttribute('y2', y);
+                line.setAttribute('class', 'chart-grid');
+                svg.appendChild(line);
+            }
+
+            const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            yAxis.setAttribute('x1', margin.left);
+            yAxis.setAttribute('y1', margin.top);
+            yAxis.setAttribute('x2', margin.left);
+            yAxis.setAttribute('y2', margin.top + height);
+            yAxis.setAttribute('class', 'chart-axis');
+            svg.appendChild(yAxis);
+
+            const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            xAxis.setAttribute('x1', margin.left);
+            xAxis.setAttribute('y1', margin.top + height);
+            xAxis.setAttribute('x2', margin.left + width);
+            xAxis.setAttribute('y2', margin.top + height);
+            xAxis.setAttribute('class', 'chart-axis');
+            svg.appendChild(xAxis);
+
+            // Scale for trace elements (0-0.2 ppm max)
+            const yScale = (value) => margin.top + height - (parseFloat(value) / 0.2) * height;
+            const xScale = (index) => margin.left + (index / (tankData.length - 1)) * width;
+
+            // Draw Iron data
+            if (ironData.length > 0) {
+                ironData.forEach(d => {
+                    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    dot.setAttribute('cx', xScale(d.index));
+                    dot.setAttribute('cy', yScale(d.value));
+                    dot.setAttribute('r', '4');
+                    dot.setAttribute('fill', parameterConfig['Iron'].color);
+                    dot.setAttribute('stroke', 'white');
+                    dot.setAttribute('stroke-width', '1');
+                    dot.onmouseover = function(e) {
+                        showTooltip(e, 'Iron: ' + d.value + ' ppm<br>Date: ' + d.date);
+                    };
+                    dot.onmouseout = hideTooltip;
+                    svg.appendChild(dot);
+                });
+            }
+
+            // Draw Copper data
+            if (copperData.length > 0) {
+                copperData.forEach(d => {
+                    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    dot.setAttribute('cx', xScale(d.index));
+                    dot.setAttribute('cy', yScale(d.value));
+                    dot.setAttribute('r', '4');
+                    dot.setAttribute('fill', parameterConfig['Copper'].color);
+                    dot.setAttribute('stroke', 'white');
+                    dot.setAttribute('stroke-width', '1');
+                    dot.onmouseover = function(e) {
+                        showTooltip(e, 'Copper: ' + d.value + ' ppm<br>Date: ' + d.date);
+                    };
+                    dot.onmouseout = hideTooltip;
+                    svg.appendChild(dot);
+                });
+            }
+
+            // Y-axis labels for trace elements
+            for (let i = 0; i <= 5; i++) {
+                const value = (0.2 * (5 - i)) / 5;
+                const y = margin.top + (i / 5) * height;
+                
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', margin.left - 10);
+                text.setAttribute('y', y + 4);
+                text.setAttribute('text-anchor', 'end');
+                text.setAttribute('class', 'chart-text');
+                text.textContent = value.toFixed(2);
+                svg.appendChild(text);
+            }
+
+            // Legend for trace elements
+            const ironLegend = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            ironLegend.setAttribute('x', margin.left + 10);
+            ironLegend.setAttribute('y', margin.top + 20);
+            ironLegend.setAttribute('class', 'chart-text');
+            ironLegend.setAttribute('fill', parameterConfig['Iron'].color);
+            ironLegend.textContent = '🔶 Iron';
+            svg.appendChild(ironLegend);
+
+            const copperLegend = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            copperLegend.setAttribute('x', margin.left + 10);
+            copperLegend.setAttribute('y', margin.top + 35);
+            copperLegend.setAttribute('class', 'chart-text');
+            copperLegend.setAttribute('fill', parameterConfig['Copper'].color);
+            copperLegend.textContent = '🟤 Copper';
+            svg.appendChild(copperLegend);
+        }
+
         function updateHistory() {
             const tbody = document.getElementById('parameterHistory');
             tbody.innerHTML = '';
             
             tankData.slice().reverse().forEach(record => {
                 const row = document.createElement('tr');
-                const params = ['PH', 'Ammonia', 'Nitrite', 'Nitrate', 'Salinity', 'Phosphate'];
+                const params = ['PH', 'Ammonia', 'Nitrite', 'Nitrate', 'Salinity', 'Iron', 'Copper', 'Alkalinity', 'Carbonate', 'Calcium', 'Magnesium', 'Phosphate'];
                 
                 let rowHTML = '<td style="font-weight: 600;">' + record.date + '</td>';
                 params.forEach(param => {
@@ -1674,6 +1854,10 @@
             drawParameterChart('phChart', 'PH');
             drawParameterChart('ammoniaChart', 'Ammonia');
             drawParameterChart('phosphateChart', 'Phosphate');
+            drawParameterChart('calciumChart', 'Calcium');
+            drawParameterChart('magnesiumChart', 'Magnesium');
+            drawParameterChart('alkalinityChart', 'Alkalinity');
+            drawTraceElementsChart();
         }
 
         function drawParameterChart(chartId, param) {
