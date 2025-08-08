@@ -1,0 +1,1880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rudy's Reef Tank Tracker</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background-color: #f9fafb;
+            color: #111827;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+            padding: 24px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #6b7280;
+            font-size: 18px;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e5e7eb;
+            margin-bottom: 24px;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            color: #6b7280;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+            background-color: #eff6ff;
+        }
+
+        .tab:hover {
+            color: #374151;
+            background-color: #f3f4f6;
+        }
+
+        .grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-4 { grid-template-columns: repeat(4, 1fr); }
+        .grid-5 { grid-template-columns: repeat(5, 1fr); }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .grid-4, .grid-5 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .grid-md-2 { grid-template-columns: repeat(2, 1fr); }
+            .grid-md-3 { grid-template-columns: repeat(3, 1fr); }
+            .grid-md-4 { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        @media (min-width: 1024px) {
+            .grid-lg-5 { grid-template-columns: repeat(5, 1fr); }
+        }
+
+        .param-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .param-card.good { border-color: #10b981; background-color: #f0fdf4; color: #065f46; }
+        .param-card.warning { border-color: #f59e0b; background-color: #fffbeb; color: #92400e; }
+        .param-card.critical { border-color: #ef4444; background-color: #fef2f2; color: #991b1b; }
+        .param-card.unknown { border-color: #9ca3af; background-color: #f9fafb; color: #6b7280; }
+
+        .param-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .param-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .param-value {
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .param-target {
+            font-size: 10px;
+            opacity: 0.7;
+        }
+
+        .summary {
+            background: linear-gradient(135deg, #dbeafe 0%, #dcfce7 100%);
+            border: 1px solid #93c5fd;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .summary h3 {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .summary-section h4 {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .summary-section ul {
+            list-style: none;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .summary-section li {
+            margin-bottom: 4px;
+        }
+
+        .success-text {
+            color: #059669;
+            font-weight: 500;
+        }
+
+        .stat-card {
+            border: 2px solid;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-card.blue { border-color: #3b82f6; background-color: #eff6ff; }
+        .stat-card.green { border-color: #10b981; background-color: #f0fdf4; }
+        .stat-card.purple { border-color: #8b5cf6; background-color: #f5f3ff; }
+        .stat-card.orange { border-color: #f59e0b; background-color: #fffbeb; }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .stat-card.blue .stat-value { color: #2563eb; }
+        .stat-card.green .stat-value { color: #059669; }
+        .stat-card.purple .stat-value { color: #7c3aed; }
+        .stat-card.orange .stat-value { color: #d97706; }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #111827;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-textarea {
+            height: 80px;
+            resize: vertical;
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th, .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .table th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f9fafb;
+        }
+
+        .table td.good { color: #059669; }
+        .table td.warning { color: #d97706; }
+        .table td.critical { color: #dc2626; }
+        .table td.unknown { color: #9ca3af; }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-blue { background-color: #dbeafe; color: #1e40af; }
+        .badge-green { background-color: #dcfce7; color: #166534; }
+
+        .hidden { display: none; }
+        .text-center { text-align: center; }
+        .text-gray { color: #6b7280; }
+
+        .livestock-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .livestock-card.active {
+            border-color: #10b981;
+            background-color: #f0fdf4;
+        }
+
+        .livestock-card.deceased {
+            border-color: #ef4444;
+            background-color: #fef2f2;
+            opacity: 0.7;
+        }
+
+        .event-card {
+            border-left: 4px solid;
+            padding: 16px;
+            margin-bottom: 12px;
+            background: white;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .event-card.addition { border-left-color: #10b981; background-color: #f0fdf4; }
+        .event-card.death { border-left-color: #ef4444; background-color: #fef2f2; }
+        .event-card.maintenance { border-left-color: #3b82f6; background-color: #eff6ff; }
+        .event-card.other { border-left-color: #6b7280; background-color: #f9fafb; }
+
+        .chart-container {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+
+        .chart-controls {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chart-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #f9fafb;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chart-checkbox:hover {
+            background: #f3f4f6;
+        }
+
+        .chart-checkbox.active {
+            background: #eff6ff;
+            border-color: #2563eb;
+            color: #1d4ed8;
+        }
+
+        .chart-checkbox input[type="checkbox"] {
+            margin: 0;
+        }
+
+        .chart-svg {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #f3f4f6;
+            border-radius: 4px;
+        }
+
+        .chart-line {
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .chart-dot {
+            r: 3;
+            fill: white;
+            stroke-width: 2;
+            cursor: pointer;
+        }
+
+        .chart-dot:hover {
+            r: 5;
+        }
+
+        .chart-grid {
+            stroke: #f3f4f6;
+            stroke-width: 1;
+        }
+
+        .chart-axis {
+            stroke: #9ca3af;
+            stroke-width: 1;
+        }
+
+        .chart-text {
+            font-size: 11px;
+            fill: #6b7280;
+        }
+
+        .chart-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 16px;
+            font-size: 14px;
+        }
+
+        .chart-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .chart-legend-color {
+            width: 16px;
+            height: 3px;
+            border-radius: 2px;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+        }
+
+        .success-highlight {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border: 1px solid #10b981;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: #065f46;
+        }
+
+        .footer {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🌊 Rudy's Reef Tank Tracker</h1>
+            <p>Monitor and track water parameters for optimal reef health</p>
+        </div>
+
+        <!-- Navigation -->
+        <div class="card">
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('dashboard')">📊 Dashboard</button>
+                <button class="tab" onclick="showTab('charts')">📈 Charts</button>
+                <button class="tab" onclick="showTab('tank-info')">🪣 Tank Info</button>
+                <button class="tab" onclick="showTab('livestock')">🐠 Livestock</button>
+                <button class="tab" onclick="showTab('events')">📝 Events</button>
+                <button class="tab" onclick="showTab('add')">➕ Add Records</button>
+                <button class="tab" onclick="showTab('history')">📅 History</button>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div id="dashboard" class="tab-content">
+            <!-- Tank Summary -->
+            <div class="summary">
+                <h3>Tank Summary</h3>
+                <div class="summary-grid">
+                    <div class="summary-section">
+                        <h4>Latest Parameters (Aug 7, 2025)</h4>
+                        <ul>
+                            <li>• PH: 8.3 <span class="success-text">(Excellent - Perfect reef range)</span></li>
+                            <li>• Ammonia: 0 ppm <span class="success-text">(Perfect - No toxicity)</span></li>
+                            <li>• Nitrite: 0 ppm <span class="success-text">(Perfect - Cycle complete)</span></li>
+                            <li>• Nitrate: 7 ppm <span class="success-text">(Excellent - Down from 160+!)</span></li>
+                            <li>• Phosphate: 0.45 ppm <span class="success-text">(Good - Well controlled)</span></li>
+                        </ul>
+                    </div>
+                    <div class="summary-section">
+                        <h4>Tank Progress</h4>
+                        <ul>
+                            <li>• Tank Status: <span class="success-text">Mature & Stable</span></li>
+                            <li>• Cycle Status: <span class="success-text">Complete</span></li>
+                            <li>• Nitrate Reduction: <span class="success-text">96% improvement</span></li>
+                            <li>• PH Stability: <span class="success-text">Optimal range</span></li>
+                            <li>• Overall Health: <span class="success-text">Excellent</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="grid grid-md-4">
+                <div class="stat-card blue">
+                    <div class="stat-value" id="daysSinceWC">N/A</div>
+                    <div class="stat-label">Days Since Last Water Change</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-value" id="recentChanges">0</div>
+                    <div class="stat-label">Water Changes (30 days)</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="stat-value" id="totalGallons">0.0</div>
+                    <div class="stat-label">Total Gallons (30 days)</div>
+                </div>
+                <div class="stat-card orange">
+                    <div class="stat-value" id="avgPercentage">0.0%</div>
+                    <div class="stat-label">Avg Change % (30 days)</div>
+                </div>
+            </div>
+
+            <!-- Parameter Status Grid -->
+            <div class="grid grid-md-3 grid-lg-5" id="parameterGrid">
+                <!-- Parameters will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Tank Info Content -->
+        <div id="tank-info" class="tab-content hidden">
+            <!-- Tank Specifications -->
+            <div class="card">
+                <h3 style="margin-bottom: 16px;">🪣 Tank Specifications</h3>
+                
+                <div class="grid grid-md-2">
+                    <div class="form-group">
+                        <label class="form-label">Total Volume (Gallons)</label>
+                        <input type="number" step="0.1" id="tankVolume" class="form-input" placeholder="33">
+                        <div class="form-help">Total system volume including sump</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Display Tank Volume (Gallons)</label>
+                        <input type="number" step="0.1" id="displayVolume" class="form-input" placeholder="25">
+                        <div class="form-help">Main display tank volume only</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-md-3">
+                    <div class="form-group">
+                        <label class="form-label">Length (inches)</label>
+                        <input type="number" step="0.1" id="tankLength" class="form-input" placeholder="24">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Width (inches)</label>
+                        <input type="number" step="0.1" id="tankWidth" class="form-input" placeholder="12">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Height (inches)</label>
+                        <input type="number" step="0.1" id="tankHeight" class="form-input" placeholder="16">
+                    </div>
+                </div>
+
+                <div class="grid grid-md-2">
+                    <div class="form-group">
+                        <label class="form-label">Setup Date</label>
+                        <input type="date" id="tankSetupDate" class="form-input">
+                        <div class="form-help">When the tank was first set up</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tank Type</label>
+                        <select id="tankType" class="form-select">
+                            <option value="reef">🪸 Reef Tank</option>
+                            <option value="fowlr">🐠 FOWLR (Fish Only With Live Rock)</option>
+                            <option value="freshwater">🌿 Freshwater</option>
+                            <option value="saltwater">🌊 Saltwater Fish Only</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Equipment Notes</label>
+                    <textarea id="tankEquipment" class="form-textarea" placeholder="List your equipment: lighting, filtration, pumps, heater, etc."></textarea>
+                </div>
+
+                <button class="btn btn-primary" onclick="saveTankInfo()">💾 Save Tank Info</button>
+            </div>
+
+            <!-- Tank Statistics -->
+            <div class="card">
+                <h3 style="margin-bottom: 16px;">📊 Tank Statistics</h3>
+                <div id="tankStats">
+                    <div class="grid grid-md-3">
+                        <div class="stat-card blue">
+                            <div class="stat-value" id="tankAge">-</div>
+                            <div class="stat-label">Days Running</div>
+                        </div>
+                        <div class="stat-card green">
+                            <div class="stat-value" id="totalVolumeStat">33</div>
+                            <div class="stat-label">Total Gallons</div>
+                        </div>
+                        <div class="stat-card purple">
+                            <div class="stat-value" id="waterChangePercent">-</div>
+                            <div class="stat-label">Last WC Percentage</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dosing Calculator -->
+            <div class="card">
+                <h3 style="margin-bottom: 16px;">💊 Dosing Calculator</h3>
+                <p style="margin-bottom: 16px; color: #6b7280;">Calculate dosing amounts based on your tank volume</p>
+                
+                <div class="grid grid-md-3">
+                    <div class="form-group">
+                        <label class="form-label">Product Concentration</label>
+                        <input type="number" step="0.1" id="productConc" class="form-input" placeholder="10">
+                        <div class="form-help">Product strength (e.g., 10% solution)</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Target Increase (ppm)</label>
+                        <input type="number" step="0.01" id="targetIncrease" class="form-input" placeholder="10">
+                        <div class="form-help">How much to raise parameter</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Parameter Type</label>
+                        <select id="parameterType" class="form-select">
+                            <option value="calcium">Calcium</option>
+                            <option value="alkalinity">Alkalinity</option>
+                            <option value="magnesium">Magnesium</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="calculateDosing()">🧮 Calculate Dose</button>
+                
+                <div id="dosingResult" style="margin-top: 16px; padding: 16px; background: #f0fdf4; border: 1px solid #10b981; border-radius: 8px; display: none;">
+                    <h4 style="color: #065f46; margin-bottom: 8px;">Dosing Recommendation:</h4>
+                    <div id="dosingAmount" style="color: #065f46;"></div>
+                </div>
+            </div>
+
+            <!-- Water Change Calculator -->
+            <div class="card">
+                <h3 style="margin-bottom: 16px;">💧 Water Change Calculator</h3>
+                
+                <div class="grid grid-md-2">
+                    <div class="form-group">
+                        <label class="form-label">Desired Change Percentage</label>
+                        <input type="number" step="1" id="desiredPercent" class="form-input" placeholder="20">
+                        <div class="form-help">What % of total volume to change</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Or Enter Gallons</label>
+                        <input type="number" step="0.1" id="desiredGallons" class="form-input" placeholder="6.6">
+                        <div class="form-help">Specific gallon amount</div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="calculateWaterChange()">💧 Calculate Water Change</button>
+                
+                <div id="waterChangeResult" style="margin-top: 16px; padding: 16px; background: #eff6ff; border: 1px solid #2563eb; border-radius: 8px; display: none;">
+                    <h4 style="color: #1e40af; margin-bottom: 8px;">Water Change Details:</h4>
+                    <div id="waterChangeAmount" style="color: #1e40af;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Content -->
+        <div id="charts" class="tab-content hidden">
+            <!-- Parameter Selection -->
+            <div class="card">
+                <h3 style="margin-bottom: 16px;">Select Parameters to Display</h3>
+                <div class="chart-controls" id="chartControls">
+                    <!-- Parameter checkboxes will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Main Trends Chart -->
+            <div class="chart-container">
+                <div class="chart-title">Parameter Trends Over Time</div>
+                <svg class="chart-svg" id="mainChart">
+                    <text x="50%" y="50%" text-anchor="middle" class="chart-text">Select parameters to display trends</text>
+                </svg>
+                <div class="chart-legend" id="chartLegend"></div>
+            </div>
+
+            <!-- Individual Parameter Charts -->
+            <div class="grid grid-md-2">
+                <!-- Nitrate Success Story -->
+                <div class="chart-container">
+                    <div class="chart-title">🌱 Nitrate Progress - Your Success Story!</div>
+                    <div class="success-highlight">
+                        📉 Amazing improvement: From 160+ ppm to 7 ppm (96% reduction!)
+                    </div>
+                    <svg class="chart-svg" id="nitrateChart"></svg>
+                </div>
+
+                <!-- pH Stability -->
+                <div class="chart-container">
+                    <div class="chart-title">⚡ pH Stability</div>
+                    <div class="success-highlight">
+                        📈 Perfect progression: 7.9 → 8.3 (optimal reef range)
+                    </div>
+                    <svg class="chart-svg" id="phChart"></svg>
+                </div>
+
+                <!-- Ammonia Elimination -->
+                <div class="chart-container">
+                    <div class="chart-title">☠️ Ammonia Elimination</div>
+                    <div class="success-highlight">
+                        ✅ Cycle complete: From 2 ppm to 0 ppm (perfect!)
+                    </div>
+                    <svg class="chart-svg" id="ammoniaChart"></svg>
+                </div>
+
+                <!-- Phosphate Control -->
+                <div class="chart-container">
+                    <div class="chart-title">🧬 Phosphate Control</div>
+                    <div class="success-highlight">
+                        📊 Well controlled: Maintaining optimal levels
+                    </div>
+                    <svg class="chart-svg" id="phosphateChart"></svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Livestock Content -->
+        <div id="livestock" class="tab-content hidden">
+            <!-- Livestock Summary -->
+            <div class="grid grid-md-4" style="margin-bottom: 24px;">
+                <div class="stat-card blue">
+                    <div class="stat-value" id="fishCount">0</div>
+                    <div class="stat-label">🐠 Fish</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="stat-value" id="coralCount">0</div>
+                    <div class="stat-label">🪸 Corals</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-value" id="invertCount">0</div>
+                    <div class="stat-label">🦀 Inverts</div>
+                </div>
+                <div class="stat-card orange">
+                    <div class="stat-value" id="otherCount">0</div>
+                    <div class="stat-label">🌿 Other</div>
+                </div>
+            </div>
+
+            <!-- Add Livestock Form -->
+            <div class="card">
+                <h3 style="margin-bottom: 16px;">➕ Add New Livestock</h3>
+                
+                <div class="grid grid-md-2">
+                    <div class="form-group">
+                        <label class="form-label">Name/Species</label>
+                        <input type="text" id="livestockName" class="form-input" placeholder="e.g., Ocellaris Clownfish">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Type</label>
+                        <select id="livestockType" class="form-select">
+                            <option value="fish">🐠 Fish</option>
+                            <option value="coral">🪸 Coral</option>
+                            <option value="invert">🦀 Invertebrate</option>
+                            <option value="other">🌿 Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-md-2">
+                    <div class="form-group">
+                        <label class="form-label">Date Added</label>
+                        <input type="date" id="livestockDate" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Source</label>
+                        <input type="text" id="livestockSource" class="form-input" placeholder="e.g., LFS, Online, Trade">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea id="livestockNotes" class="form-textarea" placeholder="Any additional notes about this livestock..."></textarea>
+                </div>
+
+                <button class="btn btn-primary" onclick="addLivestock()">🐠 Add Livestock</button>
+            </div>
+
+            <!-- Livestock List -->
+            <div class="card">
+                <h3 style="margin-bottom: 16px;">Current Livestock</h3>
+                <div id="livestockList">
+                    <p class="text-center text-gray" style="padding: 40px;">No livestock found. Add your first livestock above!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Events Content -->
+        <div id="events" class="tab-content hidden">
+            <!-- Add Event Form -->
+            <div class="card">
+                <h3 style="margin-bottom: 16px;">📝 Log Tank Event</h3>
+                
+                <div class="grid grid-md-2">
+                    <div class="form-group">
+                        <label class="form-label">Event Type</label>
+                        <select id="eventType" class="form-select">
+                            <option value="addition">➕ Livestock Addition</option>
+                            <option value="death">💀 Death/Loss</option>
+                            <option value="maintenance">🔧 Maintenance</option>
+                            <option value="other">📝 Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Date</label>
+                        <input type="date" id="eventDate" class="form-input">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Title</label>
+                    <input type="text" id="eventTitle" class="form-input" placeholder="e.g., Added new clownfish">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea id="eventDescription" class="form-textarea" placeholder="Detailed description of what happened..."></textarea>
+                </div>
+
+                <button class="btn btn-primary" onclick="addEvent()">📝 Log Event</button>
+            </div>
+
+            <!-- Events Timeline -->
+            <div class="card">
+                <h3 style="margin-bottom: 16px;">Tank Events Timeline</h3>
+                <div id="eventsList">
+                    <p class="text-center text-gray" style="padding: 40px;">No events found. Log your first event above!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Records Content -->
+        <div id="add" class="tab-content hidden">
+            <!-- Add Water Test Record -->
+            <div class="card">
+                <h3 style="margin-bottom: 16px;">➕ Add New Test Record</h3>
+                
+                <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input type="date" id="testDate" class="form-input">
+                </div>
+
+                <div class="grid grid-md-3" id="parameterInputs">
+                    <!-- Parameter inputs will be populated by JavaScript -->
+                </div>
+
+                <button class="btn btn-primary" onclick="addTestRecord()">💾 Save Test Record</button>
+            </div>
+
+            <!-- Add Water Change -->
+            <div class="card">
+                <h3 style="margin-bottom: 16px;">💧 Log Water Change</h3>
+                
+                <div class="grid grid-md-2">
+                    <div class="form-group">
+                        <label class="form-label">Date</label>
+                        <input type="date" id="wcDate" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Gallons Changed</label>
+                        <input type="number" step="0.1" placeholder="e.g., 20" id="wcGallons" class="form-input">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea id="wcNotes" class="form-textarea" placeholder="Any additional notes about this water change..."></textarea>
+                </div>
+
+                <button class="btn btn-primary" onclick="addWaterChange()">💧 Log Water Change</button>
+            </div>
+        </div>
+
+        <!-- History Content -->
+        <div id="history" class="tab-content hidden">
+            <!-- Water Parameters History -->
+            <div class="card">
+                <h3 style="margin-bottom: 16px;">📊 Water Parameter History</h3>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>⚡ PH</th>
+                                <th>☠️ Ammonia</th>
+                                <th>⚠️ Nitrite</th>
+                                <th>🌱 Nitrate</th>
+                                <th>🌊 Salinity</th>
+                                <th>🧬 Phosphate</th>
+                            </tr>
+                        </thead>
+                        <tbody id="parameterHistory">
+                            <!-- History will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Water Changes History -->
+            <div class="card">
+                <h3 style="margin-bottom: 16px;">💧 Water Change History</h3>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Gallons</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="waterChangeHistory">
+                            <tr>
+                                <td colspan="3" class="text-center text-gray">No water changes logged yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Stats -->
+        <div class="footer">
+            <div class="grid grid-md-4 text-center">
+                <div>
+                    <div class="stat-value" style="color: #2563eb;">20</div>
+                    <div class="stat-label">Test Records</div>
+                </div>
+                <div>
+                    <div class="stat-value" style="color: #059669;" id="totalWaterChanges">0</div>
+                    <div class="stat-label">Water Changes</div>
+                </div>
+                <div>
+                    <div class="stat-value" style="color: #7c3aed;" id="totalLivestock">0</div>
+                    <div class="stat-label">Livestock</div>
+                </div>
+                <div>
+                    <div class="stat-value" style="color: #d97706;">8/7/2025</div>
+                    <div class="stat-label">Last Test Date</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple data storage
+        let livestock = [];
+        let events = [];
+        let waterChanges = [];
+        let selectedChartParams = ['PH', 'Ammonia', 'Nitrite', 'Nitrate'];
+        let tankInfo = {
+            totalVolume: 33,
+            displayVolume: 25,
+            length: 24,
+            width: 12,
+            height: 16,
+            setupDate: '2025-05-01',
+            tankType: 'reef',
+            equipment: ''
+        };
+        
+        // Tank data
+        const tankData = [
+            { id: 1, date: '2025-05-16', measurements: { 'PH': 7.9, 'Ammonia': 0.7, 'Nitrite': 0.5, 'Nitrate': '160+', 'Salinity': 1.026 }},
+            { id: 2, date: '2025-05-18', measurements: { 'PH': 7.9, 'Ammonia': 2, 'Nitrite': 0, 'Nitrate': 100, 'Salinity': 1.026 }},
+            { id: 3, date: '2025-05-19', measurements: { 'Ammonia': 1, 'Nitrite': 0, 'Nitrate': 100, 'Salinity': 1.026 }},
+            { id: 4, date: '2025-05-20', measurements: { 'Ammonia': 0.5, 'Nitrite': 0, 'Salinity': 1.026 }},
+            { id: 5, date: '2025-05-21', measurements: { 'Ammonia': 0, 'Nitrite': 0, 'Nitrate': 100, 'Salinity': 1.026 }},
+            { id: 6, date: '2025-06-10', measurements: { 'PH': 8, 'Ammonia': 0, 'Nitrate': 10, 'Salinity': 1.026, 'Phosphate': 0 }},
+            { id: 7, date: '2025-06-13', measurements: { 'PH': 8.2, 'Ammonia': 0, 'Nitrite': 0, 'Nitrate': 50, 'Salinity': 1.026, 'Phosphate': 2 }},
+            { id: 8, date: '2025-08-07', measurements: { 'PH': 8.3, 'Ammonia': 0, 'Nitrite': 0, 'Nitrate': 7, 'Salinity': 1.026, 'Phosphate': 0.45 }}
+        ];
+
+        // Parameter configuration with chart colors
+        const parameterConfig = {
+            'PH': { min: 8.1, max: 8.4, unit: '', icon: '⚡', color: '#8b5cf6' },
+            'Ammonia': { min: 0, max: 0.25, unit: 'ppm', icon: '☠️', color: '#ef4444' },
+            'Nitrite': { min: 0, max: 0.25, unit: 'ppm', icon: '⚠️', color: '#f59e0b' },
+            'Nitrate': { min: 0, max: 20, unit: 'ppm', icon: '🌱', color: '#10b981' },
+            'Salinity': { min: 1.025, max: 1.026, unit: 'sg', icon: '🌊', color: '#0ea5e9' },
+            'Phosphate': { min: 0.03, max: 0.15, unit: 'ppm', icon: '🧬', color: '#ec4899' }
+        };
+
+        function showTab(tabName) {
+            // Hide all content
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.add('hidden'));
+            
+            // Remove active from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected content
+            document.getElementById(tabName).classList.remove('hidden');
+            event.target.classList.add('active');
+            
+            // Initialize content
+            if (tabName === 'dashboard') {
+                updateDashboard();
+            } else if (tabName === 'charts') {
+                updateCharts();
+            } else if (tabName === 'tank-info') {
+                updateTankInfo();
+            } else if (tabName === 'livestock') {
+                updateLivestock();
+            } else if (tabName === 'events') {
+                updateEvents();
+            } else if (tabName === 'add') {
+                updateAddForm();
+            } else if (tabName === 'history') {
+                updateHistory();
+            }
+        }
+
+        function updateDashboard() {
+            const latestValues = tankData[tankData.length - 1].measurements;
+            
+            // Update parameter grid
+            const grid = document.getElementById('parameterGrid');
+            grid.innerHTML = '';
+            
+            Object.entries(parameterConfig).forEach(([param, config]) => {
+                const value = latestValues[param];
+                let status = 'unknown';
+                
+                if (value !== undefined && !isNaN(parseFloat(value))) {
+                    const numValue = parseFloat(value);
+                    if (numValue >= config.min && numValue <= config.max) {
+                        status = 'good';
+                    } else if (numValue < config.min * 0.8 || numValue > config.max * 1.2) {
+                        status = 'critical';
+                    } else {
+                        status = 'warning';
+                    }
+                }
+                
+                const card = document.createElement('div');
+                card.className = 'param-card ' + status;
+                card.innerHTML = 
+                    '<div class="param-icon">' + config.icon + '</div>' +
+                    '<div class="param-name">' + param + '</div>' +
+                    '<div class="param-value">' + 
+                        (value !== undefined ? value + ' ' + config.unit : 'No data') + 
+                    '</div>' +
+                    '<div class="param-target">Target: ' + config.min + '-' + config.max + ' ' + config.unit + '</div>';
+                grid.appendChild(card);
+            });
+
+            // Update water change stats
+            updateWaterChangeStats();
+        }
+
+        function updateWaterChangeStats() {
+            const now = new Date();
+            const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
+            const recentChanges = waterChanges.filter(wc => new Date(wc.date) >= thirtyDaysAgo);
+            const totalGallons = recentChanges.reduce((sum, wc) => sum + wc.gallons, 0);
+            
+            // Calculate actual percentages based on tank volume
+            const avgPercentage = recentChanges.length > 0 
+                ? recentChanges.reduce((sum, wc) => sum + (wc.gallons / tankInfo.totalVolume * 100), 0) / recentChanges.length 
+                : 0;
+
+            const lastChange = waterChanges.length > 0 ? waterChanges[0] : null;
+            const daysSinceLastChange = lastChange 
+                ? Math.floor((now - new Date(lastChange.date)) / (1000 * 60 * 60 * 24))
+                : null;
+
+            document.getElementById('daysSinceWC').textContent = daysSinceLastChange || 'N/A';
+            document.getElementById('recentChanges').textContent = recentChanges.length;
+            document.getElementById('totalGallons').textContent = totalGallons.toFixed(1);
+            document.getElementById('avgPercentage').textContent = avgPercentage.toFixed(1) + '%';
+            document.getElementById('totalWaterChanges').textContent = waterChanges.length;
+        }
+
+        function updateTankInfo() {
+            // Load saved tank info or defaults
+            const saved = localStorage.getItem('tankInfo');
+            if (saved) {
+                tankInfo = JSON.parse(saved);
+            }
+
+            // Populate form fields
+            document.getElementById('tankVolume').value = tankInfo.totalVolume;
+            document.getElementById('displayVolume').value = tankInfo.displayVolume;
+            document.getElementById('tankLength').value = tankInfo.length;
+            document.getElementById('tankWidth').value = tankInfo.width;
+            document.getElementById('tankHeight').value = tankInfo.height;
+            document.getElementById('tankSetupDate').value = tankInfo.setupDate;
+            document.getElementById('tankType').value = tankInfo.tankType;
+            document.getElementById('tankEquipment').value = tankInfo.equipment;
+
+            // Update statistics
+            updateTankStats();
+        }
+
+        function updateTankStats() {
+            // Calculate tank age
+            const setupDate = new Date(tankInfo.setupDate);
+            const now = new Date();
+            const ageInDays = Math.floor((now - setupDate) / (1000 * 60 * 60 * 24));
+
+            // Calculate last water change percentage
+            let lastWCPercent = '-';
+            if (waterChanges.length > 0) {
+                const lastWC = waterChanges[0];
+                lastWCPercent = (lastWC.gallons / tankInfo.totalVolume * 100).toFixed(1) + '%';
+            }
+
+            document.getElementById('tankAge').textContent = ageInDays > 0 ? ageInDays : '-';
+            document.getElementById('totalVolumeStat').textContent = tankInfo.totalVolume;
+            document.getElementById('waterChangePercent').textContent = lastWCPercent;
+        }
+
+        function saveTankInfo() {
+            tankInfo.totalVolume = parseFloat(document.getElementById('tankVolume').value) || 33;
+            tankInfo.displayVolume = parseFloat(document.getElementById('displayVolume').value) || 25;
+            tankInfo.length = parseFloat(document.getElementById('tankLength').value) || 24;
+            tankInfo.width = parseFloat(document.getElementById('tankWidth').value) || 12;
+            tankInfo.height = parseFloat(document.getElementById('tankHeight').value) || 16;
+            tankInfo.setupDate = document.getElementById('tankSetupDate').value || '2025-05-01';
+            tankInfo.tankType = document.getElementById('tankType').value;
+            tankInfo.equipment = document.getElementById('tankEquipment').value;
+
+            localStorage.setItem('tankInfo', JSON.stringify(tankInfo));
+            
+            updateTankStats();
+            alert('Tank information saved successfully!');
+        }
+
+        function calculateDosing() {
+            const concentration = parseFloat(document.getElementById('productConc').value);
+            const targetIncrease = parseFloat(document.getElementById('targetIncrease').value);
+            const paramType = document.getElementById('parameterType').value;
+
+            if (!concentration || !targetIncrease) {
+                alert('Please enter product concentration and target increase');
+                return;
+            }
+
+            // Basic dosing calculation (this is simplified - real calculations vary by product)
+            const volumeInLiters = tankInfo.totalVolume * 3.78541; // Convert gallons to liters
+            
+            // Simplified calculation - actual dosing depends on specific products
+            let doseML = 0;
+            if (paramType === 'calcium') {
+                doseML = (targetIncrease * volumeInLiters) / (concentration * 10);
+            } else if (paramType === 'alkalinity') {
+                doseML = (targetIncrease * volumeInLiters) / (concentration * 5);
+            } else if (paramType === 'magnesium') {
+                doseML = (targetIncrease * volumeInLiters) / (concentration * 8);
+            } else {
+                doseML = (targetIncrease * volumeInLiters) / (concentration);
+            }
+
+            const resultDiv = document.getElementById('dosingResult');
+            const amountDiv = document.getElementById('dosingAmount');
+            
+            amountDiv.innerHTML = 
+                '<strong>Dose Amount: ' + doseML.toFixed(2) + ' mL</strong><br>' +
+                'Tank Volume: ' + tankInfo.totalVolume + ' gallons (' + volumeInLiters.toFixed(1) + ' liters)<br>' +
+                'Target Increase: ' + targetIncrease + ' ppm ' + paramType + '<br>' +
+                '<small style="color: #059669;">⚠️ This is an estimate. Always start with smaller doses and test!</small>';
+            
+            resultDiv.style.display = 'block';
+        }
+
+        function calculateWaterChange() {
+            const desiredPercent = parseFloat(document.getElementById('desiredPercent').value);
+            const desiredGallons = parseFloat(document.getElementById('desiredGallons').value);
+
+            let gallons = 0;
+            let percentage = 0;
+
+            if (desiredPercent) {
+                percentage = desiredPercent;
+                gallons = (desiredPercent / 100) * tankInfo.totalVolume;
+            } else if (desiredGallons) {
+                gallons = desiredGallons;
+                percentage = (desiredGallons / tankInfo.totalVolume) * 100;
+            } else {
+                alert('Please enter either percentage or gallons');
+                return;
+            }
+
+            // Calculate salt needed for replacement water
+            const saltNeeded = gallons * 0.5; // Approximate 0.5 cups salt per gallon
+
+            const resultDiv = document.getElementById('waterChangeResult');
+            const amountDiv = document.getElementById('waterChangeAmount');
+            
+            amountDiv.innerHTML = 
+                '<strong>Water Change: ' + gallons.toFixed(1) + ' gallons (' + percentage.toFixed(1) + '%)</strong><br>' +
+                'Salt Mix Needed: ~' + saltNeeded.toFixed(1) + ' cups<br>' +
+                'Replacement Water: ' + gallons.toFixed(1) + ' gallons RO/DI water<br>' +
+                'Salinity Target: 1.025 specific gravity<br>' +
+                '<small style="color: #1e40af;">💡 Mix salt water 24 hours before use and heat to tank temperature</small>';
+            
+            resultDiv.style.display = 'block';
+
+            // Auto-fill the water change form if we're on that tab
+            document.getElementById('wcGallons').value = gallons.toFixed(1);
+        }
+
+        function updateLivestock() {
+            document.getElementById('livestockDate').value = new Date().toISOString().split('T')[0];
+            
+            // Update counts
+            const activeLivestock = livestock.filter(l => l.status === 'active');
+            const counts = {
+                fish: activeLivestock.filter(l => l.type === 'fish').length,
+                coral: activeLivestock.filter(l => l.type === 'coral').length,
+                invert: activeLivestock.filter(l => l.type === 'invert').length,
+                other: activeLivestock.filter(l => l.type === 'other').length
+            };
+
+            document.getElementById('fishCount').textContent = counts.fish;
+            document.getElementById('coralCount').textContent = counts.coral;
+            document.getElementById('invertCount').textContent = counts.invert;
+            document.getElementById('otherCount').textContent = counts.other;
+            document.getElementById('totalLivestock').textContent = activeLivestock.length;
+
+            // Update display
+            const container = document.getElementById('livestockList');
+            container.innerHTML = '';
+            
+            if (livestock.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray" style="padding: 40px;">No livestock found. Add your first livestock above!</p>';
+                return;
+            }
+
+            livestock.forEach(animal => {
+                const card = document.createElement('div');
+                card.className = 'livestock-card ' + animal.status;
+                
+                card.innerHTML = 
+                    '<div style="display: flex; justify-content: space-between; align-items: start;">' +
+                        '<div>' +
+                            '<h4>' + animal.name + '</h4>' +
+                            '<p>Type: ' + animal.type + '</p>' +
+                            '<p>Added: ' + animal.dateAdded + '</p>' +
+                            (animal.notes ? '<p>Notes: ' + animal.notes + '</p>' : '') +
+                        '</div>' +
+                        '<div>' +
+                            '<span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; ' +
+                            'background: ' + (animal.status === 'active' ? '#dcfce7; color: #166534' : '#fee2e2; color: #991b1b') + ';">' +
+                            (animal.status === 'active' ? '✅ Active' : '💀 Deceased') +
+                            '</span>' +
+                        '</div>' +
+                    '</div>';
+                
+                container.appendChild(card);
+            });
+        }
+
+        function updateEvents() {
+            document.getElementById('eventDate').value = new Date().toISOString().split('T')[0];
+            
+            const container = document.getElementById('eventsList');
+            container.innerHTML = '';
+            
+            if (events.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray" style="padding: 40px;">No events found. Log your first event above!</p>';
+                return;
+            }
+
+            events.forEach(event => {
+                const card = document.createElement('div');
+                card.className = 'event-card ' + event.type;
+                
+                card.innerHTML = 
+                    '<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">' +
+                        '<h4>' + event.title + '</h4>' +
+                        '<span style="font-size: 12px; color: #6b7280;">' + event.date + '</span>' +
+                    '</div>' +
+                    '<p>' + event.description + '</p>';
+                
+                container.appendChild(card);
+            });
+        }
+
+        function updateAddForm() {
+            document.getElementById('testDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('wcDate').value = new Date().toISOString().split('T')[0];
+            
+            const container = document.getElementById('parameterInputs');
+            container.innerHTML = '';
+            
+            Object.entries(parameterConfig).forEach(([param, config]) => {
+                const group = document.createElement('div');
+                group.className = 'form-group';
+                group.innerHTML = 
+                    '<label class="form-label">' + config.icon + ' ' + param + ' (' + config.unit + ')</label>' +
+                    '<input type="text" id="param_' + param + '" class="form-input" placeholder="' + config.min + '-' + config.max + ' ' + config.unit + '">';
+                container.appendChild(group);
+            });
+
+            // Update water change percentage field
+            const wcPercentDiv = document.createElement('div');
+            wcPercentDiv.className = 'form-group';
+            wcPercentDiv.innerHTML = 
+                '<label class="form-label">Percentage Changed</label>' +
+                '<input type="number" step="0.1" id="wcPercentage" class="form-input" readonly>' +
+                '<div class="form-help">Calculated based on ' + tankInfo.totalVolume + ' gallon tank</div>';
+            
+            const wcForm = document.getElementById('wcGallons').parentNode.parentNode;
+            wcForm.appendChild(wcPercentDiv);
+
+            // Auto-calculate percentage when gallons change
+            document.getElementById('wcGallons').oninput = function() {
+                const gallons = parseFloat(this.value) || 0;
+                const percentage = (gallons / tankInfo.totalVolume * 100).toFixed(1);
+                document.getElementById('wcPercentage').value = percentage;
+            };
+        }
+
+        function updateHistory() {
+            const tbody = document.getElementById('parameterHistory');
+            tbody.innerHTML = '';
+            
+            tankData.slice().reverse().forEach(record => {
+                const row = document.createElement('tr');
+                const params = ['PH', 'Ammonia', 'Nitrite', 'Nitrate', 'Salinity', 'Phosphate'];
+                
+                let rowHTML = '<td style="font-weight: 600;">' + record.date + '</td>';
+                params.forEach(param => {
+                    const value = record.measurements[param];
+                    const unit = parameterConfig[param] ? parameterConfig[param].unit : '';
+                    rowHTML += '<td>' + (value !== undefined ? value + ' ' + unit : '-') + '</td>';
+                });
+                
+                row.innerHTML = rowHTML;
+                tbody.appendChild(row);
+            });
+        }
+
+        function addLivestock() {
+            const name = document.getElementById('livestockName').value.trim();
+            const type = document.getElementById('livestockType').value;
+            const dateAdded = document.getElementById('livestockDate').value;
+            const source = document.getElementById('livestockSource').value.trim();
+            const notes = document.getElementById('livestockNotes').value.trim();
+
+            if (!name || !dateAdded) {
+                alert('Please enter livestock name and date added');
+                return;
+            }
+
+            const animal = {
+                id: Date.now(),
+                name: name,
+                type: type,
+                dateAdded: dateAdded,
+                source: source,
+                notes: notes,
+                status: 'active'
+            };
+
+            livestock.push(animal);
+
+            // Clear form
+            document.getElementById('livestockName').value = '';
+            document.getElementById('livestockSource').value = '';
+            document.getElementById('livestockNotes').value = '';
+
+            alert('Livestock added successfully!');
+            updateLivestock();
+        }
+
+        function addEvent() {
+            const type = document.getElementById('eventType').value;
+            const date = document.getElementById('eventDate').value;
+            const title = document.getElementById('eventTitle').value.trim();
+            const description = document.getElementById('eventDescription').value.trim();
+
+            if (!date || !title || !description) {
+                alert('Please fill in date, title, and description');
+                return;
+            }
+
+            const event = {
+                id: Date.now(),
+                type: type,
+                date: date,
+                title: title,
+                description: description
+            };
+
+            events.unshift(event);
+
+            // Clear form
+            document.getElementById('eventTitle').value = '';
+            document.getElementById('eventDescription').value = '';
+
+            alert('Event logged successfully!');
+            updateEvents();
+        }
+
+        function addTestRecord() {
+            const date = document.getElementById('testDate').value;
+            if (!date) {
+                alert('Please select a date');
+                return;
+            }
+
+            const measurements = {};
+            let hasData = false;
+            
+            Object.keys(parameterConfig).forEach(param => {
+                const input = document.getElementById('param_' + param);
+                const value = input.value.trim();
+                if (value) {
+                    measurements[param] = isNaN(value) ? value : parseFloat(value);
+                    hasData = true;
+                }
+            });
+
+            if (!hasData) {
+                alert('Please enter at least one measurement');
+                return;
+            }
+
+            // Clear form
+            Object.keys(parameterConfig).forEach(param => {
+                document.getElementById('param_' + param).value = '';
+            });
+
+            alert('Test record saved successfully!');
+        }
+
+        function addWaterChange() {
+            const date = document.getElementById('wcDate').value;
+            const gallons = parseFloat(document.getElementById('wcGallons').value) || 0;
+            const notes = document.getElementById('wcNotes').value.trim();
+
+            if (!date) {
+                alert('Please select a date');
+                return;
+            }
+
+            if (gallons <= 0) {
+                alert('Please enter gallons changed');
+                return;
+            }
+
+            const waterChange = {
+                id: Date.now(),
+                date: date,
+                gallons: gallons,
+                notes: notes
+            };
+
+            waterChanges.unshift(waterChange);
+
+            // Clear form
+            document.getElementById('wcGallons').value = '';
+            document.getElementById('wcNotes').value = '';
+
+            alert('Water change logged successfully!');
+            updateWaterChangeStats();
+            updateHistory();
+        }
+
+        function updateCharts() {
+            // Update chart parameter controls
+            const controls = document.getElementById('chartControls');
+            controls.innerHTML = '';
+            
+            Object.entries(parameterConfig).forEach(([param, config]) => {
+                const label = document.createElement('label');
+                label.className = 'chart-checkbox';
+                if (selectedChartParams.includes(param)) {
+                    label.classList.add('active');
+                }
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = selectedChartParams.includes(param);
+                checkbox.onchange = function() {
+                    toggleChartParam(param);
+                };
+                
+                const text = document.createTextNode(' ' + config.icon + ' ' + param);
+                
+                label.appendChild(checkbox);
+                label.appendChild(text);
+                controls.appendChild(label);
+            });
+
+            // Draw charts
+            drawMainChart();
+            drawIndividualCharts();
+        }
+
+        function toggleChartParam(param) {
+            const index = selectedChartParams.indexOf(param);
+            if (index > -1) {
+                selectedChartParams.splice(index, 1);
+            } else {
+                selectedChartParams.push(param);
+            }
+            updateCharts();
+        }
+
+        function drawMainChart() {
+            const svg = document.getElementById('mainChart');
+            svg.innerHTML = '';
+            
+            if (selectedChartParams.length === 0) {
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', '50%');
+                text.setAttribute('y', '50%');
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('class', 'chart-text');
+                text.textContent = 'Select parameters to display trends';
+                svg.appendChild(text);
+                return;
+            }
+
+            const margin = { top: 20, right: 30, bottom: 50, left: 60 };
+            const width = 800 - margin.left - margin.right;
+            const height = 300 - margin.top - margin.bottom;
+
+            // Create chart data
+            const chartData = tankData.map((record, index) => ({
+                date: record.date,
+                index: index,
+                ...record.measurements
+            }));
+
+            // Draw grid lines
+            for (let i = 0; i <= 5; i++) {
+                const y = margin.top + (i / 5) * height;
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', margin.left);
+                line.setAttribute('y1', y);
+                line.setAttribute('x2', margin.left + width);
+                line.setAttribute('y2', y);
+                line.setAttribute('class', 'chart-grid');
+                svg.appendChild(line);
+            }
+
+            // Draw axes
+            const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            yAxis.setAttribute('x1', margin.left);
+            yAxis.setAttribute('y1', margin.top);
+            yAxis.setAttribute('x2', margin.left);
+            yAxis.setAttribute('y2', margin.top + height);
+            yAxis.setAttribute('class', 'chart-axis');
+            svg.appendChild(yAxis);
+
+            const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            xAxis.setAttribute('x1', margin.left);
+            xAxis.setAttribute('y1', margin.top + height);
+            xAxis.setAttribute('x2', margin.left + width);
+            xAxis.setAttribute('y2', margin.top + height);
+            xAxis.setAttribute('class', 'chart-axis');
+            svg.appendChild(xAxis);
+
+            // Draw lines for each selected parameter
+            selectedChartParams.forEach(param => {
+                const config = parameterConfig[param];
+                if (!config) return;
+
+                // Get data points for this parameter
+                const dataPoints = chartData
+                    .map((d, i) => ({ x: i, y: d[param], date: d.date }))
+                    .filter(p => p.y !== undefined && !isNaN(parseFloat(p.y)));
+
+                if (dataPoints.length < 2) return;
+
+                // Calculate scales
+                const xScale = (value) => margin.left + (value / (chartData.length - 1)) * width;
+                const values = dataPoints.map(p => parseFloat(p.y));
+                const minVal = Math.min(...values);
+                const maxVal = Math.max(...values);
+                const padding = (maxVal - minVal) * 0.1 || 1;
+                const yScale = (value) => margin.top + height - ((parseFloat(value) - (minVal - padding)) / ((maxVal + padding) - (minVal - padding))) * height;
+
+                // Draw line
+                const pathData = dataPoints.map((p, i) => 
+                    (i === 0 ? 'M' : 'L') + ' ' + xScale(p.x) + ' ' + yScale(p.y)
+                ).join(' ');
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', pathData);
+                path.setAttribute('class', 'chart-line');
+                path.setAttribute('stroke', config.color);
+                svg.appendChild(path);
+
+                // Draw dots
+                dataPoints.forEach(p => {
+                    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    dot.setAttribute('cx', xScale(p.x));
+                    dot.setAttribute('cy', yScale(p.y));
+                    dot.setAttribute('class', 'chart-dot');
+                    dot.setAttribute('stroke', config.color);
+                    dot.onmouseover = function(e) {
+                        showTooltip(e, param + ': ' + p.y + ' ' + config.unit + '<br>Date: ' + p.date);
+                    };
+                    dot.onmouseout = hideTooltip;
+                    svg.appendChild(dot);
+                });
+            });
+
+            // Draw x-axis labels
+            const labelStep = Math.ceil(chartData.length / 6);
+            for (let i = 0; i < chartData.length; i += labelStep) {
+                const x = margin.left + (i / (chartData.length - 1)) * width;
+                const date = new Date(chartData[i].date);
+                const label = (date.getMonth() + 1) + '/' + date.getDate();
+                
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', x);
+                text.setAttribute('y', margin.top + height + 20);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('class', 'chart-text');
+                text.textContent = label;
+                svg.appendChild(text);
+            }
+
+            // Update legend
+            updateChartLegend();
+        }
+
+        function drawIndividualCharts() {
+            drawParameterChart('nitrateChart', 'Nitrate');
+            drawParameterChart('phChart', 'PH');
+            drawParameterChart('ammoniaChart', 'Ammonia');
+            drawParameterChart('phosphateChart', 'Phosphate');
+        }
+
+        function drawParameterChart(chartId, param) {
+            const svg = document.getElementById(chartId);
+            if (!svg) return;
+            
+            svg.innerHTML = '';
+            const config = parameterConfig[param];
+            if (!config) return;
+
+            const margin = { top: 20, right: 30, bottom: 50, left: 60 };
+            const width = 400 - margin.left - margin.right;
+            const height = 300 - margin.top - margin.bottom;
+
+            // Get data for this parameter
+            const paramData = tankData
+                .map((record, index) => ({ 
+                    date: record.date, 
+                    value: record.measurements[param],
+                    index: index 
+                }))
+                .filter(d => d.value !== undefined && !isNaN(parseFloat(d.value)));
+
+            if (paramData.length === 0) {
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', '50%');
+                text.setAttribute('y', '50%');
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('class', 'chart-text');
+                text.textContent = 'No ' + param + ' data available';
+                svg.appendChild(text);
+                return;
+            }
+
+            // Calculate scales
+            const xScale = (index) => margin.left + (index / (tankData.length - 1)) * width;
+            const values = paramData.map(d => parseFloat(d.value));
+            const minVal = Math.min(...values);
+            const maxVal = Math.max(...values);
+            const padding = (maxVal - minVal) * 0.1 || 1;
+            const yScale = (value) => margin.top + height - ((parseFloat(value) - (minVal - padding)) / ((maxVal + padding) - (minVal - padding))) * height;
+
+            // Draw target range if applicable
+            if (config.min !== undefined && config.max !== undefined) {
+                const targetMinY = yScale(config.min);
+                const targetMaxY = yScale(config.max);
+                if (targetMinY >= margin.top && targetMinY <= margin.top + height && 
+                    targetMaxY >= margin.top && targetMaxY <= margin.top + height) {
+                    
+                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    rect.setAttribute('x', margin.left);
+                    rect.setAttribute('y', targetMaxY);
+                    rect.setAttribute('width', width);
+                    rect.setAttribute('height', targetMinY - targetMaxY);
+                    rect.setAttribute('fill', config.color);
+                    rect.setAttribute('fill-opacity', '0.1');
+                    svg.appendChild(rect);
+                }
+            }
+
+            // Draw grid lines
+            for (let i = 0; i <= 5; i++) {
+                const y = margin.top + (i / 5) * height;
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', margin.left);
+                line.setAttribute('y1', y);
+                line.setAttribute('x2', margin.left + width);
+                line.setAttribute('y2', y);
+                line.setAttribute('class', 'chart-grid');
+                svg.appendChild(line);
+            }
+
+            // Draw axes
+            const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            yAxis.setAttribute('x1', margin.left);
+            yAxis.setAttribute('y1', margin.top);
+            yAxis.setAttribute('x2', margin.left);
+            yAxis.setAttribute('y2', margin.top + height);
+            yAxis.setAttribute('class', 'chart-axis');
+            svg.appendChild(yAxis);
+
+            const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            xAxis.setAttribute('x1', margin.left);
+            xAxis.setAttribute('y1', margin.top + height);
+            xAxis.setAttribute('x2', margin.left + width);
+            xAxis.setAttribute('y2', margin.top + height);
+            xAxis.setAttribute('class', 'chart-axis');
+            svg.appendChild(xAxis);
+
+            // Draw line
+            if (paramData.length > 1) {
+                const pathData = paramData.map((d, i) => 
+                    (i === 0 ? 'M' : 'L') + ' ' + xScale(d.index) + ' ' + yScale(d.value)
+                ).join(' ');
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', pathData);
+                path.setAttribute('class', 'chart-line');
+                path.setAttribute('stroke', config.color);
+                path.setAttribute('stroke-width', '3');
+                svg.appendChild(path);
+
+                // Draw dots
+                paramData.forEach(d => {
+                    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    dot.setAttribute('cx', xScale(d.index));
+                    dot.setAttribute('cy', yScale(d.value));
+                    dot.setAttribute('r', '4');
+                    dot.setAttribute('fill', 'white');
+                    dot.setAttribute('stroke', config.color);
+                    dot.setAttribute('stroke-width', '2');
+                    dot.setAttribute('class', 'chart-dot');
+                    dot.onmouseover = function(e) {
+                        showTooltip(e, param + ': ' + d.value + ' ' + config.unit + '<br>Date: ' + d.date);
+                    };
+                    dot.onmouseout = hideTooltip;
+                    svg.appendChild(dot);
+                });
+            }
+
+            // Draw y-axis labels
+            for (let i = 0; i <= 5; i++) {
+                const value = (minVal - padding) + ((maxVal + padding) - (minVal - padding)) * (1 - i/5);
+                const y = margin.top + (i / 5) * height;
+                
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', margin.left - 10);
+                text.setAttribute('y', y + 4);
+                text.setAttribute('text-anchor', 'end');
+                text.setAttribute('class', 'chart-text');
+                text.textContent = value.toFixed(1);
+                svg.appendChild(text);
+            }
+
+            // Draw x-axis labels
+            const labelStep = Math.ceil(paramData.length / 4);
+            for (let i = 0; i < paramData.length; i += labelStep) {
+                const x = xScale(paramData[i].index);
+                const date = new Date(paramData[i].date);
+                const label = (date.getMonth() + 1) + '/' + date.getDate();
+                
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', x);
+                text.setAttribute('y', margin.top + height + 20);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('class', 'chart-text');
+                text.textContent = label;
+                svg.appendChild(text);
+            }
+        }
+
+        function updateChartLegend() {
+            const legend = document.getElementById('chartLegend');
+            legend.innerHTML = '';
+            
+            selectedChartParams.forEach(param => {
+                const config = parameterConfig[param];
+                if (config) {
+                    const item = document.createElement('div');
+                    item.className = 'chart-legend-item';
+                    
+                    const color = document.createElement('div');
+                    color.className = 'chart-legend-color';
+                    color.style.backgroundColor = config.color;
+                    
+                    const label = document.createElement('span');
+                    label.textContent = config.icon + ' ' + param + ' (' + config.unit + ')';
+                    
+                    item.appendChild(color);
+                    item.appendChild(label);
+                    legend.appendChild(item);
+                }
+            });
+        }
+
+        function showTooltip(event, content) {
+            let tooltip = document.getElementById('chartTooltip');
+            if (!tooltip) {
+                tooltip = document.createElement('div');
+                tooltip.id = 'chartTooltip';
+                tooltip.className = 'tooltip';
+                document.body.appendChild(tooltip);
+            }
+            
+            tooltip.innerHTML = content;
+            tooltip.style.left = (event.pageX + 10) + 'px';
+            tooltip.style.top = (event.pageY - 10) + 'px';
+            tooltip.style.opacity = '1';
+        }
+
+        function hideTooltip() {
+            const tooltip = document.getElementById('chartTooltip');
+            if (tooltip) {
+                tooltip.style.opacity = '0';
+            }
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDashboard();
+        });
+    </script>
+</body>
+</html>
